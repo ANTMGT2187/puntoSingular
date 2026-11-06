@@ -1,4 +1,4 @@
-from modelos import registrar_compra, solicitar_datos_cliente, consultar_catalogo, consultar_saldo
+from modelos import registrar_compra, solicitar_datos_cliente, consultar_catalogo, consultar_saldo, canjear_premio
 from validaciones import validar_clientes_vacios
 def main ():
     clientes = {}
@@ -8,8 +8,8 @@ def main ():
             "nombre": "Juan Pérez",
             "correo": "juan.perez@example.com",
             "fecha_registro": "01-01-2023",
-            "puntos": 0,
-            "saldo": 0,
+            "puntos": 25000,
+            "saldo": 25000,
             "nivel": "Bronce"
         }
     })
@@ -35,6 +35,8 @@ def main ():
             case "4":
                 validar_clientes_vacios(clientes, main)
                 consultar_saldo(clientes)
+            case "5":
+                canjear_premio(clientes)
             case _:
                 print(compras)
                 print("Opción inválida. Intente nuevamente.")

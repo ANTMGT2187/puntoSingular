@@ -1,10 +1,10 @@
 from validaciones import validar_nombre, validar_correo, validar_fecha, validar_identificador, validar_identificador_existente, validar_monto
 catalogo_premios = {
-                    "P01": {"nombre": "Café de cortesía", "puntosNecesarios": 100},
-                    "P02": {"nombre": "Cupón de descuento 10%", "puntosNecesarios": 250},
-                    "P03": {"nombre": "Gift card de 50 u.m", "puntosNecesarios": 800},
-                    "P04": {"nombre": "Audífonos inalambricos", "puntosNecesarios": 1200},
-                    "P05": {"nombre": "Fin de semana en hotel", "puntosNecesarios": 4000}
+                    "P01": {"nombre": "Café de cortesía", "puntos_necesarios": 100},
+                    "P02": {"nombre": "Cupón de descuento 10%", "puntos_necesarios": 250},
+                    "P03": {"nombre": "Gift card de 50 u.m", "puntos_necesarios": 800},
+                    "P04": {"nombre": "Audífonos inalambricos", "puntos_necesarios": 1200},
+                    "P05": {"nombre": "Fin de semana en hotel", "puntos_necesarios": 4000}
                 }
 niveles_puntos = {
                 "Bronce": {"minimo": 0, "multiplicador": 1},
@@ -50,7 +50,7 @@ def solicitar_datos_cliente(clientes):
 def consultar_catalogo():
     print("Catálogo de premios:")
     for codigo, premio in catalogo_premios.items():
-        print(f"{codigo}: {premio['nombre']} - Puntos necesarios: {premio['puntosNecesarios']}")
+        print(f"{codigo}: {premio['nombre']} - Puntos necesarios: {premio['puntos_necesarios']}")
 
 
 def consultar_saldo(clientes):
@@ -92,5 +92,17 @@ def registrar_compra(clientes, compras):
     print(f"Compra registrada exitosamente. ID de la compra: {id_compra}. Nivel del cliente: {nivel}. Puntos ganados: {puntos_ganados}.")
     return id_compra, datos
 
-
-
+def canjear_premio(clientes):
+    identificador = pedir_dato("Ingrese el identificador del cliente: ",
+        lambda v: validar_identificador_existente(v, clientes),
+    )
+    identificador_premio = pedir_dato("Ingrese el identificador del premio: ",
+        lambda v: validar_identificador_existente(v, catalogo_premios),
+    )
+    while clientes[identificador]["saldo"] < catalogo_premios[identificador_premio]["puntos_necesarios"]:
+        print ("No cuenta con suficiente saldo. Por favor, ingrese otro premio")
+        identificador_premio = pedir_dato("Ingrese el identificador del premio: ",
+        lambda v: validar_identificador_existente(v, catalogo_premios)
+    )
+    clientes[identificador]["saldo"] - catalogo_premios[identificador_premio]["puntos_necesarios"]
+    print(f"Canje realizado exitosamente, disfrute de su {catalogo_premios[identificador_premio]["nombre"]}")

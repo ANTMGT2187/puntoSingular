@@ -32,7 +32,7 @@ def validar_identificador(identificador, clientes):
 
 def validar_identificador_existente(identificador, clientes):
     if identificador not in clientes:
-        print("El cliente no existe. Por favor, ingrese un identificador válido.")
+        print("El identificador no existe. Por favor, ingrese un identificador válido.")
         return False
     return True
 
@@ -56,4 +56,5 @@ def validar_monto(numero):
         print(f"El valor no puede tener más de {2} decimales. Por favor, ingrese un valor válido.")
         return False
     return True
+    
 
