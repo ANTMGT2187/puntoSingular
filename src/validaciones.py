@@ -18,10 +18,10 @@ def validar_nombre(nombre):
 
 def validar_fecha(fecha):
     try:
-        datetime.strptime(fecha, "%d/%m/%Y")
+        datetime.strptime(fecha, "%d-%m-%Y")
         return True
     except ValueError:
-        print("Fecha inválida. Por favor, ingrese una fecha válida (formato: dd/mm/yyyy).")
+        print("Fecha inválida. Por favor, ingrese una fecha válida (formato: dd-mm-yyyy).")
         return False
 
 def validar_identificador(identificador, clientes):
@@ -35,3 +35,25 @@ def validar_identificador_existente(identificador, clientes):
         print("El cliente no existe. Por favor, ingrese un identificador válido.")
         return False
     return True
+
+def validar_clientes_vacios(clientes, funcion):
+    while clientes == {}:
+        print("No hay clientes registrados. Por favor, cree un cliente antes de continuar.")
+        return funcion()
+    return True
+
+def validar_monto(numero):
+    valor = float(numero)
+    try:
+        valor
+    except ValueError:
+        print("El valor debe ser un número. Por favor, ingrese un valor válido.")
+        return False
+    if valor <= 0:
+        print("El valor no puede ser negativo. Por favor, ingrese un valor válido.")
+        return False
+    if valor != round(valor, 2):
+        print(f"El valor no puede tener más de {2} decimales. Por favor, ingrese un valor válido.")
+        return False
+    return True
+

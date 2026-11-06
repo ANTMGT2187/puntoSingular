@@ -1,5 +1,4 @@
-from validaciones import validar_nombre, validar_correo, validar_fecha, validar_identificador, validar_identificador_existente
-
+from validaciones import validar_nombre, validar_correo, validar_fecha, validar_identificador, validar_identificador_existente, validar_monto
 catalogo_premios = {
                     "P01": {"nombre": "Café de cortesía", "puntosNecesarios": 100},
                     "P02": {"nombre": "Cupón de descuento 10%", "puntosNecesarios": 250},
@@ -8,14 +7,14 @@ catalogo_premios = {
                     "P05": {"nombre": "Fin de semana en hotel", "puntosNecesarios": 4000}
                 }
 niveles_puntos = {
-                "Bronce": {"minimo": 0, "maximo": 999, "multiplicador": 1},
-                "Plata": {"minimo": 1000, "maximo": 4999, "multiplicador": 1.25},
-                "Oro": {"minimo": 5000, "maximo": float('inf'), "multiplicador": 1.5}
+                "Bronce": {"minimo": 0, "multiplicador": 1},
+                "Plata": {"minimo": 1000, "multiplicador": 1.25},
+                "Oro": {"minimo": 5000, "multiplicador": 1.5}
             }
 
 #Crear clientes
-def calcular_puntos(monto, clientes):
-    puntos_actuales = clientes["id_cliente"]["puntos"]
+def calcular_puntos(monto, clientes, identificador):
+    puntos_actuales = clientes[identificador]["puntos"]
     for nivel, datos in niveles_puntos.items():
         if puntos_actuales >= datos["minimo"]:
             multiplicador = datos["multiplicador"]
@@ -34,6 +33,8 @@ def crear_clientes(identificador, nombre, correo, fecha):
         "correo": correo,
         "fecha_registro": fecha,
         "puntos": 0,
+        "saldo": 0,
+        "nivel": "Bronce"
     }
 
 def solicitar_datos_cliente(clientes):
@@ -42,13 +43,54 @@ def solicitar_datos_cliente(clientes):
     )
     nombre = pedir_dato("Ingrese el nombre del cliente: ", validar_nombre)
     correo = pedir_dato("Ingrese el correo del cliente: ", validar_correo)
-    fecha = pedir_dato("Ingrese la fecha de registro (dd/mm/yyyy): ", validar_fecha)
-    return crear_clientes(identificador, nombre, correo, fecha)
+    fecha = pedir_dato("Ingrese la fecha de registro (dd-mm-yyyy): ", validar_fecha)
+    cliente, datos = crear_clientes(identificador, nombre, correo, fecha)
+    return cliente, datos
 
-def registrar_compra(clientes):
-    identificador = pedir_dato("Ingrese el identificador del cliente: ", validar_identificador_existente)
-    fecha = pedir_dato("Ingrese la fecha de la compra (dd/mm/yyyy): ", validar_fecha)
-    monto = float(input("Ingrese el monto de la compra: "))
-    puntos_ganados = calcular_puntos(monto, identificador)
+def consultar_catalogo():
+    print("Catálogo de premios:")
+    for codigo, premio in catalogo_premios.items():
+        print(f"{codigo}: {premio['nombre']} - Puntos necesarios: {premio['puntosNecesarios']}")
+
+
+def consultar_saldo(clientes):
+    identificador = pedir_dato("Ingrese el identificador del cliente: ",
+        lambda v: validar_identificador_existente(v, clientes),
+    )
+    puntos = clientes[identificador]["saldo"]
+    nivel = obtener_nivel(puntos)
+    print(f"El cliente {clientes[identificador]["nombre"]} es nivel {nivel} y tiene un saldo de {puntos} puntos")
+
+def crear_identificador_compra(compras):
+    return f"C-{len(compras) + 1}"
+
+def obtener_nivel(puntos):
+    for nivel, datos in reversed(niveles_puntos.items()):
+        if puntos >= datos["minimo"]:
+            return nivel
+
+def crear_compra(compras, identificador_cliente, fecha, monto, puntos_ganados):
+    id_compra = crear_identificador_compra(compras)
+    return id_compra, {
+        "id_cliente": identificador_cliente,
+        "fecha": fecha,
+        "monto": monto,
+        "puntos_ganados": puntos_ganados
+    }
+def registrar_compra(clientes, compras):
+    identificador = pedir_dato("Ingrese el identificador del cliente: ",
+        lambda v: validar_identificador_existente(v, clientes),
+    )
+    fecha = pedir_dato("Ingrese la fecha de la compra (dd-mm-yyyy): ", validar_fecha)
+    monto = float(pedir_dato("Ingrese el monto de la compra: ", validar_monto))
+    puntos_ganados = calcular_puntos(monto, clientes, identificador)
+    nivel = obtener_nivel(clientes[identificador]["puntos"])
     clientes[identificador]["puntos"] += puntos_ganados
+    clientes[identificador]["nivel"] = nivel
+    clientes[identificador]["saldo"] += puntos_ganados
+    id_compra, datos = crear_compra(compras, identificador, fecha, monto, puntos_ganados)
+    print(f"Compra registrada exitosamente. ID de la compra: {id_compra}. Nivel del cliente: {nivel}. Puntos ganados: {puntos_ganados}.")
+    return id_compra, datos
+
+
 
