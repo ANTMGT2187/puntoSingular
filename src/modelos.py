@@ -1,4 +1,5 @@
 from validaciones import validar_nombre, validar_correo, validar_fecha, validar_identificador, validar_identificador_existente, validar_monto
+from datetime import datetime
 catalogo_premios = {
                     "P01": {"nombre": "Café de cortesía", "puntos_necesarios": 100},
                     "P02": {"nombre": "Cupón de descuento 10%", "puntos_necesarios": 250},
@@ -27,6 +28,7 @@ def pedir_dato(mensaje, validador):
         valor = input(mensaje)
     return valor
 
+# Metodos para crear clientes
 def crear_clientes(identificador, nombre, correo, fecha):
     return identificador, {
         "nombre": nombre,
@@ -34,7 +36,8 @@ def crear_clientes(identificador, nombre, correo, fecha):
         "fecha_registro": fecha,
         "puntos": 0,
         "saldo": 0,
-        "nivel": "Bronce"
+        "nivel": "Bronce",
+        "historial": []
     }
 
 def solicitar_datos_cliente(clientes):
@@ -69,8 +72,37 @@ def obtener_nivel(puntos):
         if puntos >= datos["minimo"]:
             return nivel
 
-def crear_compra(compras, identificador_cliente, fecha, monto, puntos_ganados):
-    id_compra = crear_identificador_compra(compras)
+def crear_movimiento(tipo, puntos, fecha, referencia):
+    return {
+        "tipo": tipo,              
+        "puntos": puntos,          
+        "fecha": fecha,            
+        "referencia": referencia 
+    }
+
+def registrar_movimiento(clientes, identificador, tipo, puntos, fecha, referencia):
+    movimiento = crear_movimiento(tipo, puntos, fecha, referencia)
+    clientes[identificador].setdefault("historial", []).append(movimiento)
+
+def obtener_historial(clientes, identificador):
+    historial = clientes[identificador].get("historial", [])
+    ordenado = sorted(historial, key=lambda m: datetime.strptime(m["fecha"], "%d-%m-%Y"))
+    return [dict(m) for m in ordenado]
+
+def consultar_historial(clientes):
+    identificador = pedir_dato("Ingrese el identificador del cliente: ",
+        lambda v: validar_identificador_existente(v, clientes),
+    )
+    historial = obtener_historial(clientes, identificador)
+    if not historial:
+        print(f"El cliente {clientes[identificador]['nombre']} no tiene movimientos.")
+        return historial
+    print(f"Historial de {clientes[identificador]['nombre']}:")
+    for m in historial:
+        print(f"{m['fecha']} | {m['tipo']:<11} | {m['puntos']:+} puntos | Ref: {m['referencia']}")
+    return historial
+
+def crear_compra(id_compra, identificador_cliente, fecha, monto, puntos_ganados):
     return id_compra, {
         "id_cliente": identificador_cliente,
         "fecha": fecha,
@@ -81,6 +113,7 @@ def registrar_compra(clientes, compras):
     identificador = pedir_dato("Ingrese el identificador del cliente: ",
         lambda v: validar_identificador_existente(v, clientes),
     )
+    id_compra = crear_identificador_compra(compras)
     fecha = pedir_dato("Ingrese la fecha de la compra (dd-mm-yyyy): ", validar_fecha)
     monto = float(pedir_dato("Ingrese el monto de la compra: ", validar_monto))
     puntos_ganados = calcular_puntos(monto, clientes, identificador)
@@ -88,9 +121,11 @@ def registrar_compra(clientes, compras):
     clientes[identificador]["puntos"] += puntos_ganados
     clientes[identificador]["nivel"] = nivel
     clientes[identificador]["saldo"] += puntos_ganados
-    id_compra, datos = crear_compra(compras, identificador, fecha, monto, puntos_ganados)
+    id_compra, datos = crear_compra(id_compra, identificador, fecha, monto, puntos_ganados)
+    registrar_movimiento(clientes, identificador, "ACUMULACION", +puntos_ganados, fecha, id_compra)
     print(f"Compra registrada exitosamente. ID de la compra: {id_compra}. Nivel del cliente: {nivel}. Puntos ganados: {puntos_ganados}.")
     return id_compra, datos
+
 
 def canjear_premio(clientes):
     identificador = pedir_dato("Ingrese el identificador del cliente: ",
@@ -104,5 +139,8 @@ def canjear_premio(clientes):
         identificador_premio = pedir_dato("Ingrese el identificador del premio: ",
         lambda v: validar_identificador_existente(v, catalogo_premios)
     )
-    clientes[identificador]["saldo"] - catalogo_premios[identificador_premio]["puntos_necesarios"]
+    fecha = pedir_dato("Ingrese la fecha de la compra (dd-mm-yyyy): ", validar_fecha)
+    puntos = catalogo_premios[identificador_premio]["puntos_necesarios"]
+    clientes[identificador]["saldo"] -= puntos
+    registrar_movimiento(clientes, identificador, "CANJE", -puntos, fecha, identificador_premio)
     print(f"Canje realizado exitosamente, disfrute de su {catalogo_premios[identificador_premio]["nombre"]}")

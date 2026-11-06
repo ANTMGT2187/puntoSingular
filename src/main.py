@@ -1,4 +1,4 @@
-from modelos import registrar_compra, solicitar_datos_cliente, consultar_catalogo, consultar_saldo, canjear_premio
+from modelos import registrar_compra, solicitar_datos_cliente, consultar_catalogo, consultar_saldo, canjear_premio, consultar_historial
 from validaciones import validar_clientes_vacios
 def main ():
     clientes = {}
@@ -19,13 +19,14 @@ def main ():
         print("2. Registrar compra")
         print("3. Consultar catálogo")
         print("4. Consultar saldo")
-        print("5. Salir")
+        print("5. Canjear premios")
+        print("6. Consultar historial")
+        print("7. Hacer una devolucion")
         opcion = input("Ingrese el número de la opción: ")
         match opcion:
             case "1":
                 identificador, datos = solicitar_datos_cliente(clientes)
                 clientes[identificador] = datos
-                print(clientes)
             case "2":
                 validar_clientes_vacios(clientes, main)
                 identificador, datos = registrar_compra(clientes, compras)
@@ -36,7 +37,12 @@ def main ():
                 validar_clientes_vacios(clientes, main)
                 consultar_saldo(clientes)
             case "5":
+                validar_clientes_vacios(clientes, main)
                 canjear_premio(clientes)
+            case "6":
+                consultar_historial(clientes)
+            case "7":
+                print("No se ha implementado")
             case _:
                 print(compras)
                 print("Opción inválida. Intente nuevamente.")

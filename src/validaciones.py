@@ -43,18 +43,16 @@ def validar_clientes_vacios(clientes, funcion):
     return True
 
 def validar_monto(numero):
-    valor = float(numero)
     try:
-        valor
+        valor = float(numero)
+        if valor <= 0:
+            print("El valor no puede ser negativo. Por favor, ingrese un valor válido.")
+            return False
+        if valor != round(valor, 2):
+            print(f"El valor no puede tener más de {2} decimales. Por favor, ingrese un valor válido.")
+            return False
     except ValueError:
         print("El valor debe ser un número. Por favor, ingrese un valor válido.")
         return False
-    if valor <= 0:
-        print("El valor no puede ser negativo. Por favor, ingrese un valor válido.")
-        return False
-    if valor != round(valor, 2):
-        print(f"El valor no puede tener más de {2} decimales. Por favor, ingrese un valor válido.")
-        return False
     return True
-    
 
