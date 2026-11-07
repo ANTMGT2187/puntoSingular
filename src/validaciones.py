@@ -55,4 +55,3 @@ def validar_monto(numero):
         print("El valor debe ser un número. Por favor, ingrese un valor válido.")
         return False
     return True
-

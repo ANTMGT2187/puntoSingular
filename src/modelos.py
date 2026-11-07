@@ -1,5 +1,6 @@
 from validaciones import validar_nombre, validar_correo, validar_fecha, validar_identificador, validar_identificador_existente, validar_monto
 from datetime import datetime
+import math
 catalogo_premios = {
                     "P01": {"nombre": "Café de cortesía", "puntos_necesarios": 100},
                     "P02": {"nombre": "Cupón de descuento 10%", "puntos_necesarios": 250},
@@ -19,7 +20,7 @@ def calcular_puntos(monto, clientes, identificador):
     for nivel, datos in niveles_puntos.items():
         if puntos_actuales >= datos["minimo"]:
             multiplicador = datos["multiplicador"]
-            puntos_ganados = (monto/10) * multiplicador
+            puntos_ganados = math.floor((monto/10) * multiplicador)
     return puntos_ganados
 
 def pedir_dato(mensaje, validador):
@@ -48,6 +49,7 @@ def solicitar_datos_cliente(clientes):
     correo = pedir_dato("Ingrese el correo del cliente: ", validar_correo)
     fecha = pedir_dato("Ingrese la fecha de registro (dd-mm-yyyy): ", validar_fecha)
     cliente, datos = crear_clientes(identificador, nombre, correo, fecha)
+    print (f"Cliente {nombre} creado satisfactoriamente")
     return cliente, datos
 
 def consultar_catalogo():
@@ -55,14 +57,26 @@ def consultar_catalogo():
     for codigo, premio in catalogo_premios.items():
         print(f"{codigo}: {premio['nombre']} - Puntos necesarios: {premio['puntos_necesarios']}")
 
+def consultar_nivel(clientes):
+    identificador = pedir_dato("Ingrese el identificador del cliente: ",
+        lambda v: validar_identificador_existente(v, clientes),
+    )
+    puntos = clientes[identificador]["puntos"]
+    nivel = obtener_nivel(puntos)
+    print(f"El cliente {clientes[identificador]["nombre"]} es nivel {nivel} y tiene un saldo de {puntos} puntos acumulados")
+    for nombre, datos in niveles_puntos.items():
+        if puntos < datos["minimo"]:
+            print(f"Le faltan {datos['minimo'] - puntos} puntos para el nivel {nombre}")
+            break
+    else:
+        print("Ya está en el nivel máximo")
 
 def consultar_saldo(clientes):
     identificador = pedir_dato("Ingrese el identificador del cliente: ",
         lambda v: validar_identificador_existente(v, clientes),
     )
     puntos = clientes[identificador]["saldo"]
-    nivel = obtener_nivel(puntos)
-    print(f"El cliente {clientes[identificador]["nombre"]} es nivel {nivel} y tiene un saldo de {puntos} puntos")
+    print(f"El cliente {clientes[identificador]["nombre"]} tiene un saldo de {puntos} puntos ")
 
 def crear_identificador_compra(compras):
     return f"C-{len(compras) + 1}"
@@ -123,7 +137,7 @@ def registrar_compra(clientes, compras):
     clientes[identificador]["saldo"] += puntos_ganados
     id_compra, datos = crear_compra(id_compra, identificador, fecha, monto, puntos_ganados)
     registrar_movimiento(clientes, identificador, "ACUMULACION", +puntos_ganados, fecha, id_compra)
-    print(f"Compra registrada exitosamente. ID de la compra: {id_compra}. Nivel del cliente: {nivel}. Puntos ganados: {puntos_ganados}.")
+    print(f"Compra registrada exitosamente. ID de la compra: {id_compra}. Nivel del cliente: {nivel} (multiplicador x{niveles_puntos[nivel]["multiplicador"]}). Puntos ganados: {puntos_ganados}.")
     return id_compra, datos
 
 
@@ -134,11 +148,9 @@ def canjear_premio(clientes):
     identificador_premio = pedir_dato("Ingrese el identificador del premio: ",
         lambda v: validar_identificador_existente(v, catalogo_premios),
     )
-    while clientes[identificador]["saldo"] < catalogo_premios[identificador_premio]["puntos_necesarios"]:
-        print ("No cuenta con suficiente saldo. Por favor, ingrese otro premio")
-        identificador_premio = pedir_dato("Ingrese el identificador del premio: ",
-        lambda v: validar_identificador_existente(v, catalogo_premios)
-    )
+    if clientes[identificador]["saldo"] < catalogo_premios[identificador_premio]["puntos_necesarios"]:
+        print ("No cuenta con suficiente saldo. Por favor, vuelva a inmtentar")
+        return
     fecha = pedir_dato("Ingrese la fecha de la compra (dd-mm-yyyy): ", validar_fecha)
     puntos = catalogo_premios[identificador_premio]["puntos_necesarios"]
     clientes[identificador]["saldo"] -= puntos

@@ -1,27 +1,19 @@
-from modelos import registrar_compra, solicitar_datos_cliente, consultar_catalogo, consultar_saldo, canjear_premio, consultar_historial
+from modelos import registrar_compra, solicitar_datos_cliente, consultar_catalogo, consultar_saldo, canjear_premio, consultar_historial, consultar_nivel
 from validaciones import validar_clientes_vacios
 def main ():
     clientes = {}
     compras = {}
-    clientes.update({
-        "1": {
-            "nombre": "Juan Pérez",
-            "correo": "juan.perez@example.com",
-            "fecha_registro": "01-01-2023",
-            "puntos": 25000,
-            "saldo": 25000,
-            "nivel": "Bronce"
-        }
-    })
+    print("Seleccione una opción:")
+    print("1. Crear cliente")
+    print("2. Registrar compra")
+    print("3. Consultar catálogo")
+    print("4. Consultar saldo")
+    print("5. Canjear premios")
+    print("6. Consultar historial")
+    print("7. Hacer una devolucion")
+    print("8. Consultar nivel")
+    print("9. Salir")
     while True:
-        print("Seleccione una opción:")
-        print("1. Crear cliente")
-        print("2. Registrar compra")
-        print("3. Consultar catálogo")
-        print("4. Consultar saldo")
-        print("5. Canjear premios")
-        print("6. Consultar historial")
-        print("7. Hacer una devolucion")
         opcion = input("Ingrese el número de la opción: ")
         match opcion:
             case "1":
@@ -43,8 +35,13 @@ def main ():
                 consultar_historial(clientes)
             case "7":
                 print("No se ha implementado")
+            case "8":
+                validar_clientes_vacios(clientes, main)
+                consultar_nivel(clientes)
+            case "9":
+                print("Saliendo...")
+                break
             case _:
-                print(compras)
                 print("Opción inválida. Intente nuevamente.")
 if __name__ == "__main__":
     main()
